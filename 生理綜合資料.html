@@ -135,13 +135,18 @@
             const temperatureData = [];
     
             dataHeight.forEach(entry => {
-                labels.push(entry.resource.effectiveDateTime);
-                bodyHeightData.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        bodyHeightData.push(entry.resource.valueQuantity.value);
+    });
     
             dataWeight.forEach(entry => {
-                bodyWeightData.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        bodyWeightData.push(entry.resource.valueQuantity.value);
+    });
     
             dataPressure.forEach(entry => {
                 entry.resource.component.forEach(component => {
@@ -153,21 +158,29 @@
                 });
             });
             dataHeartrate.forEach(entry => {
-                labels.push(entry.resource.effectiveDateTime);
-                heartRateData.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        heartRateData.push(entry.resource.valueQuantity.value);
+    });
             dataRespiratory.forEach(entry => {
-                labels.push(entry.resource.effectiveDateTime);
-                respiratoryData.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        respiratoryData.push(entry.resource.valueQuantity.value);
+    });
             dataSpo2.forEach(entry => {
-                labels.push(entry.resource.effectiveDateTime);
-                spo2Data.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        spo2Data.push(entry.resource.valueQuantity.value);
+    });
             dataTemperature.forEach(entry => {
-                labels.push(entry.resource.effectiveDateTime);
-                temperatureData.push(entry.resource.valueQuantity.value);
-            });
+                if (!labels.includes(entry.resource.effectiveDateTime)) {
+            labels.push(entry.resource.effectiveDateTime);
+        }
+        temperatureData.push(entry.resource.valueQuantity.value);
+    });
     
             // Calculate min and max values for the chart
             const allValues = [...bodyHeightData, ...bodyWeightData, ...systolicData, ...diastolicData, ...heartRateData, ...respiratoryData, ...spo2Data, ...temperatureData];
