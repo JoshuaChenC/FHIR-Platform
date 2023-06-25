@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FHIRplatform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <style>
+        #chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            width: 60%;
+            margin: 0 auto;
+        }
+        #myChart {
+            width: 100%;
+            height: 80%;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <nav class="navbar bg-dark navbar-dark p-3 navbar-expand-lg">
+        <div class="container">
+            <a href="進入頁面.html" class="navbar-brand">FHIR醫療資訊平台</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"> 
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a  href="platform.html" class="nav-link">個人生理紀錄</a>
+                    </li>
+                    <li class="nav-item">
+                        <a  class="nav-link" href="medication.html" >就醫用藥記錄</a>
+                    </li>
+                    <li class="nav-item">
+                        <a  class="nav-link" href="Result.html" >檢驗檢查結果</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="logout()">登出</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="chart-container">
+        <select id="data-count" onchange="fetchData()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+        </select>
+        <div>
+            <input type="checkbox" id="height-checkbox" checked onchange="updateChart()"> Body Height
+            <input type="checkbox" id="weight-checkbox" checked onchange="updateChart()"> Body Weight
+            <input type="checkbox" id="pressure-checkbox" checked onchange="updateChart()"> Blood Pressure
+            <input type="checkbox" id="heartrate-checkbox" checked onchange="updateChart()"> Heart rate
+            <input type="checkbox" id="respiratory-checkbox" checked onchange="updateChart()"> Respiratory rate
+            <input type="checkbox" id="spo2-checkbox" checked onchange="updateChart()"> SpO2
+            <input type="checkbox" id="temperature-checkbox" checked onchange="updateChart()"> Temperature
+        </div>
+        <canvas id="myChart"></canvas>
+    </div>
+    
+    <script>
+        let chart;
+        let allDataHeight;
+        let allDataWeight;
+        let allDataPressure;
+        let allDataHeartrate;
+        let allRespiratoryrate;
+        let allSpO2;
+        let allTemperature;
+    
+        const heightUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8302-2&subject=10769331';
+        const weightUrl = 'https://hapi.fhir.org/baseR4/Observation?code=29463-7&subject=10769331'; 
+        const pressureUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8357-6&subject=10769331';
+        const heartrateUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8867-4&subject=10769331';
+        const respiratoryUrl = 'https://hapi.fhir.org/baseR4/Observation?code=9279-1&subject=10769331';
+        const spo2Url = 'https://hapi.fhir.org/baseR4/Observation?code=2708-6&subject=10769331';
+        const temperatureUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8310-5&subject=10769331';
+
+        function fetchData() {
+            Promise.all([
+                fetch(heightUrl).then(response => response.json()),
+                fetch(weightUrl).then(response => response.json()),
+                fetch(pressureUrl).then(response => response.json()),
+                fetch(heartrateUrl).then(response => response.json()),
+                fetch(respiratoryUrl).then(response => response.json()),
+                fetch(spo2Url).then(response => response.json()),
+                fetch(temperatureUrl).then(response => response.json())
+            ]).then(([heightData, weightData, pressureData,heartRateData,respiratoryData,spo2Data,temperatureData]) => {
+                allDataHeight = heightData;
+                allDataWeight = weightData;
+                allDataPressure = pressureData;
+                allDataHeartrate = heartRateData;
+                allDataRespiratory = respiratoryData;
+                allDataSpo2 = spo2Data;
+                allDataTemperature = temperatureData;
+                updateChart();
+            });
+        }
+    
+        function updateChart() {
+            const dataCount = document.getElementById('data-count').value;
+            const dataHeight = allDataHeight.entry.slice(0, dataCount);
+            const dataWeight = allDataWeight.entry.slice(0, dataCount);
+            const dataPressure = allDataPressure.entry.slice(0, dataCount);
+            const dataHeartrate = allDataHeartrate.entry.slice(0, dataCount);
+            const dataRespiratory = allDataRespiratory.entry.slice(0, dataCount);
+            const dataSpo2 = allDataSpo2.entry.slice(0, dataCount);
+            const dataTemperature = allDataTemperature.entry.slice(0, dataCount);
+    
+            const labels = [];
+            const bodyHeightData = [];
+            const bodyWeightData = [];
+            const systolicData = [];
+            const diastolicData = [];
+            const heartRateData = [];
+            const respiratoryData = [];
+            const spo2Data = [];
+            const temperatureData = [];
+    
+            dataHeight.forEach(entry => {
+                labels.push(entry.resource.effectiveDateTime);
+                bodyHeightData.push(entry.resource.valueQuantity.value);
+            });
+    
+            dataWeight.forEach(entry => {
+                bodyWeightData.push(entry.resource.valueQuantity.value);
+            });
+    
+            dataPressure.forEach(entry => {
+                entry.resource.component.forEach(component => {
+                    if (component.code.coding[0].display === 'Systolic blood pressure') {
+                        systolicData.push(component.valueQuantity.value);
+                    } else if (component.code.coding[0].display === 'Diastolic blood pressure') {
+                        diastolicData.push(component.valueQuantity.value);
+                    }
+                });
+            });
+            dataHeartrate.forEach(entry => {
+                labels.push(entry.resource.effectiveDateTime);
+                heartRateData.push(entry.resource.valueQuantity.value);
+            });
+            dataRespiratory.forEach(entry => {
+                labels.push(entry.resource.effectiveDateTime);
+                respiratoryData.push(entry.resource.valueQuantity.value);
+            });
+            dataSpo2.forEach(entry => {
+                labels.push(entry.resource.effectiveDateTime);
+                spo2Data.push(entry.resource.valueQuantity.value);
+            });
+            dataTemperature.forEach(entry => {
+                labels.push(entry.resource.effectiveDateTime);
+                temperatureData.push(entry.resource.valueQuantity.value);
+            });
+    
+            // Calculate min and max values for the chart
+            const allValues = [...bodyHeightData, ...bodyWeightData, ...systolicData, ...diastolicData, ...heartRateData, ...respiratoryData, ...spo2Data, ...temperatureData];
+            const minValue = Math.min(...allValues);
+            const maxValue = Math.max(...allValues);
+    
+            if (chart) {
+                chart.destroy();
+            }
+            const datasets = [];
+        if (document.getElementById('height-checkbox').checked) {
+            datasets.push({
+                label: 'Body Height',
+                data: bodyHeightData,
+                borderColor: 'rgb(75, 192, 192)',
+                fill: false
+            });
+        }
+        if (document.getElementById('weight-checkbox').checked) {
+            datasets.push({
+                label: 'Body Weight',
+                data: bodyWeightData,
+                borderColor: 'rgb(127,255,212)',
+                fill: false
+            });
+        }
+        if (document.getElementById('pressure-checkbox').checked) {
+            datasets.push({
+                label: 'Systolic Blood Pressure',
+                data: systolicData,
+                borderColor: 'rgb(255, 99, 132)',
+                fill: false
+            }, {
+                label: 'Diastolic Blood Pressure',
+                data: diastolicData,
+                borderColor: 'rgb(0, 0, 205)',
+                fill: false
+            });
+        }
+        if (document.getElementById('heartrate-checkbox').checked) {
+            datasets.push({
+                label: 'Heart right',
+                data: heartRateData,
+                borderColor: 'rgb(178,34,34)',
+                fill: false
+            });
+        }
+        if (document.getElementById('respiratory-checkbox').checked) {
+            datasets.push({
+                label: 'Respiratory Rate',
+                data: respiratoryData,
+                borderColor: 'rgb(30,144,255)',
+                fill: false
+            });
+        }
+        if (document.getElementById('spo2-checkbox').checked) {
+            datasets.push({
+                label: 'SpO2',
+                data: spo2Data,
+                borderColor: 'rgb(139,0,0)',
+                fill: false
+            });
+        }
+        if (document.getElementById('temperature-checkbox').checked) {
+            datasets.push({
+                label: 'Temperature',
+                data: temperatureData,
+                borderColor: 'rgb(138,43,226)',
+                fill: false
+            });
+        }
+    
+            const ctx = document.getElementById('myChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: '生理綜合資料'
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Effective Date Time'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Height (cm) / Weight (kg) / Pressure (mmHg)/ Heart rate (min) / Respiratory rate (min) / SpO2 (%) / Temperature (°C)'
+                        },
+                        min: minValue,
+                        max: maxValue
+                        }
+                    }
+                }
+            });
+        }
+    
+        // Initial data fetch
+        fetchData();
+    </script>
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+        <script>
+            function logout() {
+                alert('您已成功登出');
+                location.reload();
+            }
+        </script>
+</body>
+
+</html>
