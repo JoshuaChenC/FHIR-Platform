@@ -70,7 +70,6 @@
             <input type="checkbox" id="heartrate-checkbox" checked onchange="updateChart()"> Heart rate
             <input type="checkbox" id="respiratory-checkbox" checked onchange="updateChart()"> Respiratory rate
             <input type="checkbox" id="spo2-checkbox" checked onchange="updateChart()"> SpO2
-            <input type="checkbox" id="temperature-checkbox" checked onchange="updateChart()"> Temperature
         </div>
         <canvas id="myChart"></canvas>
     </div>
@@ -83,7 +82,6 @@
         let allDataHeartrate;
         let allRespiratoryrate;
         let allSpO2;
-        let allTemperature;
     
         const heightUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8302-2&subject=10769331';
         const weightUrl = 'https://hapi.fhir.org/baseR4/Observation?code=29463-7&subject=10769331'; 
@@ -91,7 +89,6 @@
         const heartrateUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8867-4&subject=10769331';
         const respiratoryUrl = 'https://hapi.fhir.org/baseR4/Observation?code=9279-1&subject=10769331';
         const spo2Url = 'https://hapi.fhir.org/baseR4/Observation?code=2708-6&subject=10769331';
-        const temperatureUrl = 'https://hapi.fhir.org/baseR4/Observation?code=8310-5&subject=10769331';
 
         function fetchData() {
             Promise.all([
@@ -100,16 +97,14 @@
                 fetch(pressureUrl).then(response => response.json()),
                 fetch(heartrateUrl).then(response => response.json()),
                 fetch(respiratoryUrl).then(response => response.json()),
-                fetch(spo2Url).then(response => response.json()),
-                fetch(temperatureUrl).then(response => response.json())
-            ]).then(([heightData, weightData, pressureData,heartRateData,respiratoryData,spo2Data,temperatureData]) => {
+                fetch(spo2Url).then(response => response.json())
+            ]).then(([heightData, weightData, pressureData,heartRateData,respiratoryData,spo2Data]) => {
                 allDataHeight = heightData;
                 allDataWeight = weightData;
                 allDataPressure = pressureData;
                 allDataHeartrate = heartRateData;
                 allDataRespiratory = respiratoryData;
                 allDataSpo2 = spo2Data;
-                allDataTemperature = temperatureData;
                 updateChart();
             });
         }
@@ -122,7 +117,6 @@
             const dataHeartrate = allDataHeartrate.entry.slice(0, dataCount);
             const dataRespiratory = allDataRespiratory.entry.slice(0, dataCount);
             const dataSpo2 = allDataSpo2.entry.slice(0, dataCount);
-            const dataTemperature = allDataTemperature.entry.slice(0, dataCount);
     
             const labels = [];
             const bodyHeightData = [];
@@ -132,7 +126,6 @@
             const heartRateData = [];
             const respiratoryData = [];
             const spo2Data = [];
-            const temperatureData = [];
     
             dataHeight.forEach(entry => {
                 if (!labels.includes(entry.resource.effectiveDateTime)) {
@@ -175,12 +168,7 @@
         }
         spo2Data.push(entry.resource.valueQuantity.value);
     });
-            dataTemperature.forEach(entry => {
-                if (!labels.includes(entry.resource.effectiveDateTime)) {
-            labels.push(entry.resource.effectiveDateTime);
-        }
-        temperatureData.push(entry.resource.valueQuantity.value);
-    });
+        
     
             // Calculate min and max values for the chart
             const allValues = [...bodyHeightData, ...bodyWeightData, ...systolicData, ...diastolicData, ...heartRateData, ...respiratoryData, ...spo2Data, ...temperatureData];
@@ -244,14 +232,7 @@
                 fill: false
             });
         }
-        if (document.getElementById('temperature-checkbox').checked) {
-            datasets.push({
-                label: 'Temperature',
-                data: temperatureData,
-                borderColor: 'rgb(138,43,226)',
-                fill: false
-            });
-        }
+       
     
             const ctx = document.getElementById('myChart').getContext('2d');
             chart = new Chart(ctx, {
@@ -278,7 +259,7 @@
                         display: true,
                         title: {
                             display: true,
-                            text: 'Height (cm) / Weight (kg) / Pressure (mmHg)/ Heart rate (min) / Respiratory rate (min) / SpO2 (%) / Temperature (°C)'
+                            text: 'Height (cm) / Weight (kg) / Pressure (mmHg)/ Heart rate (min) / Respiratory rate (min) / SpO2 (%) /'
                         },
                         min: minValue,
                         max: maxValue
