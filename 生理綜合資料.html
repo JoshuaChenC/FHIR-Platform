@@ -168,7 +168,6 @@
         }
         spo2Data.push(entry.resource.valueQuantity.value);
     });
-        
     
             // Calculate min and max values for the chart
             const allValues = [...bodyHeightData, ...bodyWeightData, ...systolicData, ...diastolicData, ...heartRateData, ...respiratoryData, ...spo2Data];
@@ -232,7 +231,6 @@
                 fill: false
             });
         }
-       
     
             const ctx = document.getElementById('myChart').getContext('2d');
             chart = new Chart(ctx, {
@@ -259,7 +257,7 @@
                         display: true,
                         title: {
                             display: true,
-                            text: 'Height (cm) / Weight (kg) / Pressure (mmHg)/ Heart rate (min) / Respiratory rate (min) / SpO2 (%) /'
+                            text: 'Height (cm) / Weight (kg) / Pressure (mmHg)/ Heart rate (min) / Respiratory rate (min) / SpO2 (%)'
                         },
                         min: minValue,
                         max: maxValue
